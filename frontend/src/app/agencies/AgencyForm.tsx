@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import { Card, Input, Button } from "@nextui-org/react";
-import Select from "react-select";
+import dynamic from "next/dynamic";
 import { Agency } from "../models/agency.model";
 import { City } from "../models/city.model";
-import AgencyService from "../services/agency.service";
+import {
+  handleInputChange,
+  handleCitySelect,
+  handleSubmit,
+} from "../handlers/agency.form.handler";
+
+const Select = dynamic(() => import("react-select"), { ssr: false });
 
 interface AgencyFormProps {
   cities: City[];
@@ -19,41 +25,6 @@ const AgencyForm: React.FC<AgencyFormProps> = ({ cities, onAgencyAdded }) => {
     email: "",
     phoneNumber: "",
   });
-
-  const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    const { name, value } = event.target;
-    setAgencyData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleCitySelect = (selectedOption: any): void => {
-    setAgencyData((prevData) => ({
-      ...prevData,
-      cityId: selectedOption.value,
-    }));
-  };
-
-  const handleSubmit = async (): Promise<void> => {
-    try {
-      await AgencyService.post(agencyData as Agency);
-      console.log("Agency added successfully!");
-      setAgencyData({
-        cityId: "",
-        name: "",
-        address: "",
-        website: "",
-        email: "",
-        phoneNumber: "",
-      });
-      onAgencyAdded();
-    } catch (error) {
-      console.error("Error adding agency:", error);
-    }
-  };
 
   const customSelectStyles = {
     control: (provided: any) => ({
@@ -82,7 +53,6 @@ const AgencyForm: React.FC<AgencyFormProps> = ({ cities, onAgencyAdded }) => {
       <h2 className="text-xl mb-2">Add New Agency</h2>
       <div className="flex flex-col space-y-4">
         <div>
-          <label htmlFor="agencyCity">City:</label>
           <Select
             id="agencyCity"
             name="cityId"
@@ -90,57 +60,69 @@ const AgencyForm: React.FC<AgencyFormProps> = ({ cities, onAgencyAdded }) => {
               value: city._id,
               label: city.name,
             }))}
-            onChange={handleCitySelect}
+            onChange={(selectedOption) =>
+              handleCitySelect(selectedOption, setAgencyData)
+            }
             placeholder="Select City"
             styles={customSelectStyles}
+            key={cities.length}
           />
         </div>
         <div>
-          <label htmlFor="agencyName">Name:</label>
           <Input
             id="agencyName"
             name="name"
+            label="Agency name"
+            placeholder="Please enter the agency name"
             value={agencyData.name}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange(e, setAgencyData)}
           />
         </div>
         <div>
-          <label htmlFor="agencyAddress">Address:</label>
           <Input
             id="agencyAddress"
             name="address"
+            label="Address"
+            placeholder="Please enter the agency address"
             value={agencyData.address}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange(e, setAgencyData)}
           />
         </div>
         <div>
-          <label htmlFor="agencyWebsite">Website (optional):</label>
           <Input
             id="agencyWebsite"
             name="website"
+            label="Website (optional)"
+            placeholder="Please enter the agency website"
             value={agencyData.website || ""}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange(e, setAgencyData)}
           />
         </div>
         <div>
-          <label htmlFor="agencyEmail">Email (optional):</label>
           <Input
             id="agencyEmail"
             name="email"
+            label="Email (optional)"
+            placeholder="Please enter the agency email"
             value={agencyData.email || ""}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange(e, setAgencyData)}
           />
         </div>
         <div>
-          <label htmlFor="agencyPhoneNumber">Phone Number (optional):</label>
           <Input
             id="agencyPhoneNumber"
             name="phoneNumber"
+            label="Phone Number (optional)"
+            placeholder="Please enter the agency phone number"
             value={agencyData.phoneNumber || ""}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange(e, setAgencyData)}
           />
         </div>
-        <Button onClick={handleSubmit}>Add Agency</Button>
+        <Button
+          onClick={() => handleSubmit(agencyData, setAgencyData, onAgencyAdded)}
+        >
+          Add Agency
+        </Button>
       </div>
     </Card>
   );
